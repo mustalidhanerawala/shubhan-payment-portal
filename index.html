@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Shubhan Ventures | Payment Portal</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body>
+
+    <!-- ================= LOGIN ================= -->
+
+    <section id="loginPage" class="page active">
+
+        <div class="login-container">
+
+            <div class="login-card">
+
+                <div class="logo-circle">
+                    <i class="fa-solid fa-building-columns"></i>
+                </div>
+
+                <h1>Shubhan Ventures</h1>
+
+                <p>Payment Management Portal</p>
+
+                <form id="loginForm">
+
+                    <div class="input-group">
+                        <label>Username</label>
+                        <input type="text" id="username" placeholder="Enter Username" autocomplete="off" required>
+                    </div>
+
+                    <div class="input-group">
+
+                        <label>Password</label>
+
+                        <div class="password-box">
+
+                            <input type="password" id="password" placeholder="Enter Password" required>
+
+                            <button type="button" id="togglePassword">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <button class="login-btn" type="submit">
+                        Login
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ================= DASHBOARD ================= -->
+
+    <section id="dashboardPage" class="page">
+
+        <!-- Sidebar -->
+
+        <aside class="sidebar">
+
+            <div class="sidebar-top">
+
+                <div class="company">
+
+                    <i class="fa-solid fa-building-columns"></i>
+
+                    <span>Shubhan</span>
+
+                </div>
+
+                <button id="closeSidebar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+            </div>
+
+            <ul id="menuList">
+
+            </ul>
+
+            <button id="logoutBtn" class="logout">
+
+                <i class="fa-solid fa-right-from-bracket"></i>
+
+                Logout
+
+            </button>
+
+        </aside>
+
+
+
+        <!-- Main -->
+
+        <div class="main-content">
+
+            <!-- Navbar -->
+
+            <nav class="topbar">
+
+                <div class="left">
+
+                    <button id="menuBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+
+                    <h2 id="pageTitle">
+                        Dashboard
+                    </h2>
+
+                </div>
+
+                <div class="right">
+
+                    <button class="notification">
+
+                        <i class="fa-solid fa-bell"></i>
+
+                        <span id="notificationCount">0</span>
+
+                    </button>
+
+                    <div class="user">
+
+                        <div class="avatar">
+
+                            <i class="fa-solid fa-user"></i>
+
+                        </div>
+
+                        <div>
+
+                            <h4 id="loggedUser"></h4>
+
+                            <small id="loggedRole"></small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </nav>
+
+
+
+            <!-- Statistics -->
+
+            <section class="stats">
+
+                <div class="stat-card">
+
+                    <h4>Pending</h4>
+
+                    <h2 id="pendingCount">0</h2>
+
+                </div>
+
+                <div class="stat-card">
+
+                    <h4>Approved</h4>
+
+                    <h2 id="approvedCount">0</h2>
+
+                </div>
+
+                <div class="stat-card">
+
+                    <h4>Completed</h4>
+
+                    <h2 id="completedCount">0</h2>
+
+                </div>
+
+                <div class="stat-card">
+
+                    <h4>Total Amount</h4>
+
+                    <h2 id="totalAmount">₹0</h2>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- Dynamic Content -->
+
+            <section id="contentArea"></section>
+            <div id="completedContainer"></div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ================= MODAL ================= -->
+
+    <div id="modalOverlay" class="modal-overlay">
+
+        <div class="modal">
+
+            <h3 id="modalTitle">
+
+                Confirmation
+
+            </h3>
+
+            <p id="modalText">
+
+                Are you sure?
+
+            </p>
+
+            <div class="modal-buttons">
+
+                <button id="cancelModal">
+
+                    Cancel
+
+                </button>
+
+                <button id="confirmModal">
+
+                    Confirm
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================= LOADER ================= -->
+
+    <div id="loader" class="loader">
+
+        <div class="spinner"></div>
+
+    </div>
+
+
+
+    <!-- ================= TOAST ================= -->
+
+    <div id="toast">
+
+    </div>
+
+
+    <!-- Firebase -->
+
+    <script type="module" src="js/firebase.js"></script>
+
+    <script type="module" src="js/auth.js"></script>
+
+    <script type="module" src="js/cloudinary.js"></script>
+
+    <script type="module" src="js/request.js"></script>
+
+    <script type="module" src="js/employee.js"></script>
+
+    <script type="module" src="js/finance.js"></script>
+
+    <script type="module" src="js/approver.js"></script>
+
+
+
+    <script type="module" src="js/app.js"></script>
+
+</body>
+
+</html>

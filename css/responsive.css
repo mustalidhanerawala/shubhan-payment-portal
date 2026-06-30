@@ -1,0 +1,333 @@
+/* ==========================================
+   SHUBHAN PAYMENT PORTAL
+   RESPONSIVE STYLES
+==========================================*/
+
+
+/* ===========================
+   LARGE LAPTOPS
+=========================== */
+
+@media (max-width:1400px){
+
+    .stats{
+
+        grid-template-columns:repeat(2,1fr);
+
+    }
+
+}
+
+
+/* ===========================
+   LAPTOPS
+=========================== */
+
+@media (max-width:1200px){
+
+    .main-content{
+
+        padding:25px;
+
+    }
+
+}
+
+
+/* ===========================
+   TABLETS
+=========================== */
+
+@media (max-width:992px){
+
+    .sidebar{
+
+        left:-280px;
+
+        width:260px;
+
+        transition:.35s;
+
+        z-index:9999;
+
+    }
+
+    .sidebar.show{
+
+        left:0;
+
+    }
+
+    #closeSidebar{
+
+        display:block;
+
+    }
+
+    #menuBtn{
+
+        display:block;
+
+    }
+
+    .main-content{
+
+        width:100%;
+
+        margin-left:0;
+
+    }
+
+    .stats{
+
+        grid-template-columns:repeat(2,1fr);
+
+    }
+
+}
+
+
+/* ===========================
+   MOBILE
+=========================== */
+
+@media (max-width:768px){
+
+    body{
+
+        font-size:15px;
+
+    }
+
+    .topbar{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:18px;
+
+    }
+
+    .right{
+
+        width:100%;
+
+        justify-content:space-between;
+
+    }
+
+    .stats{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .login-card{
+
+        padding:30px 22px;
+
+    }
+
+    .logo-circle{
+
+        width:75px;
+
+        height:75px;
+
+        font-size:30px;
+
+    }
+
+    .company span{
+
+        font-size:20px;
+
+    }
+
+    table{
+
+        display:block;
+
+        overflow-x:auto;
+
+        white-space:nowrap;
+
+    }
+
+    th,td{
+
+        min-width:150px;
+
+    }
+
+}
+
+
+/* ===========================
+   SMALL MOBILE
+=========================== */
+
+@media (max-width:576px){
+
+    #loginPage{
+
+        padding:20px;
+
+    }
+
+    .login-card{
+
+        border-radius:20px;
+
+    }
+
+    .main-content{
+
+        padding:18px;
+
+    }
+
+    .topbar h2{
+
+        font-size:20px;
+
+    }
+
+    .notification{
+
+        width:48px;
+
+        height:48px;
+
+    }
+
+    .avatar{
+
+        width:48px;
+
+        height:48px;
+
+    }
+
+    .stat-card{
+
+        padding:20px;
+
+    }
+
+    .stat-card h2{
+
+        font-size:24px;
+
+    }
+
+    .modal{
+
+        padding:22px;
+
+    }
+
+    .modal-buttons{
+
+        flex-direction:column;
+
+    }
+
+    .modal-buttons button{
+
+        width:100%;
+
+    }
+
+    #toast{
+
+        left:15px;
+
+        right:15px;
+
+        bottom:15px;
+
+        text-align:center;
+
+    }
+
+}
+
+
+/* ===========================
+   EXTRA SMALL MOBILE
+=========================== */
+
+@media (max-width:420px){
+
+    .login-card{
+
+        padding:25px 18px;
+
+    }
+
+    .login-card h1{
+
+        font-size:24px;
+
+    }
+
+    .login-card p{
+
+        font-size:14px;
+
+    }
+
+    input,
+    select,
+    textarea{
+
+        padding:12px;
+
+        font-size:14px;
+
+    }
+
+    .login-btn{
+
+        padding:13px;
+
+        font-size:15px;
+
+    }
+
+    .user h4{
+
+        font-size:14px;
+
+    }
+
+    .user small{
+
+        font-size:12px;
+
+    }
+
+    .company{
+
+        font-size:18px;
+
+    }
+
+}
+
+
+/* ===========================
+   LANDSCAPE MOBILE
+=========================== */
+
+@media (max-height:500px){
+
+    .sidebar{
+
+        overflow-y:auto;
+
+    }
+
+}
