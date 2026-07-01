@@ -946,3 +946,10 @@ TOAST
     margin-top: 20px;
     margin-right: 20px;
 }
+
+.details-btn,
+.approve-btn,
+.decline-btn {
+    margin-right: 10px;
+    margin-bottom: 8px;
+}

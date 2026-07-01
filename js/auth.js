@@ -245,3 +245,33 @@ if (loginForm) {
 // ENTER KEY
 // ==========================================
 
+// ==========================================
+// TOGGLE PASSWORD VISIBILITY
+// ==========================================
+
+const passwordInput = document.getElementById("password");
+const togglePassword = document.getElementById("togglePassword");
+
+if (passwordInput && togglePassword) {
+
+    togglePassword.addEventListener("click", function () {
+
+        if (passwordInput.type === "password") {
+
+            passwordInput.type = "text";
+
+            togglePassword.innerHTML =
+                '<i class="fa-solid fa-eye-slash"></i>';
+
+        } else {
+
+            passwordInput.type = "password";
+
+            togglePassword.innerHTML =
+                '<i class="fa-solid fa-eye"></i>';
+
+        }
+
+    });
+
+}
