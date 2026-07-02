@@ -4,16 +4,23 @@
 // =====================================
 import {
     loadEmployeeDashboard,
-    openNewRequestForm
+    openNewRequestForm,
+    loadEmployeeHistory
 } from "./employee.js";
 
 import {
-    loadFinanceDashboard
+    loadFinanceDashboard,
+    loadFinancePending,
+    loadFinanceCompleted
 } from "./finance.js";
 
 import {
-    loadApproverDashboard
+    loadApproverDashboard,
+    loadPendingPayments,
+    loadCompletedPaymentsPage
 } from "./approver.js";
+
+
 // Current Logged In User
 let currentUser = null;
 
@@ -386,9 +393,19 @@ document.addEventListener(
 
                     case "dashboard":
 
+                        loadEmployeeDashboard();
+
+                        break;
+
+                    case "newRequest":
+
+                        openNewRequestForm();
+
+                        break;
+
                     case "history":
 
-                        loadEmployeeDashboard();
+                        loadEmployeeHistory();
 
                         break;
 
@@ -404,9 +421,21 @@ document.addEventListener(
 
                     case "dashboard":
 
+                        loadFinanceDashboard();
+
+                        break;
+
                     case "pending":
 
+                        loadFinancePending();
+
+                        break;
+
                     case "completed":
+
+                        loadFinanceCompleted();
+
+                        break;
 
                     case "newRequest":
 
@@ -426,11 +455,19 @@ document.addEventListener(
 
                     case "dashboard":
 
+                        loadApproverDashboard();
+
+                        break;
+
                     case "payments":
+
+                        loadPendingPayments();
+
+                        break;
 
                     case "completed":
 
-                        loadApproverDashboard();
+                        loadCompletedPaymentsPage();
 
                         break;
 

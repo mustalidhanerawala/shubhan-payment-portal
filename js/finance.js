@@ -30,24 +30,70 @@ let unsubscribeFinance = null;
 
 let financeRequests = [];
 
-
+let financeView = "dashboard";
 
 // ==============================================
 // LOAD FINANCE DASHBOARD
 // ==============================================
 
 export function loadFinanceDashboard() {
-
+    financeView = "dashboard";
     financeUser = getCurrentUser();
 
-    setPageTitle("Finance Dashboard");
+    setPageTitle("Dashboard");
 
-    buildFinanceDashboard();
+    contentArea.innerHTML = `
 
-    loadRealtimeRequests();
+        <div class="finance-dashboard">
+
+            <div class="dashboard-header">
+
+                <div>
+
+                    <h2>Welcome, ${financeUser.name}</h2>
+
+                    <p>
+                        Review and manage payment requests.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+    loadRealtimeRequests(false);
 
 }
 
+export function loadFinancePending() {
+    financeView = "pending";
+
+    financeUser = getCurrentUser();
+
+    setPageTitle("Pending Requests");
+
+    buildFinanceDashboard();
+
+    loadRealtimeRequests(true);
+
+}
+
+export function loadFinanceCompleted() {
+
+    financeView = "completed";
+
+    financeUser = getCurrentUser();
+
+    setPageTitle("Completed Requests");
+
+    buildFinanceDashboard();
+
+    loadRealtimeRequests(true);
+
+}
 
 
 // ==============================================
@@ -148,7 +194,7 @@ function buildFinanceDashboard() {
 // REALTIME REQUESTS
 // ==============================================
 
-function loadRealtimeRequests() {
+function loadRealtimeRequests(renderTable = true) {
 
     if (unsubscribeFinance) {
 
@@ -162,10 +208,37 @@ function loadRealtimeRequests() {
 
             financeRequests = requests;
 
-            renderFinanceTable(requests);
-
             updateDashboardCards();
 
+           if (renderTable) {
+
+    let data = requests;
+
+    if (financeView === "pending") {
+
+        data = requests.filter(request =>
+            request.status === "Pending Finance"
+        );
+
+    }
+
+    else if (financeView === "completed") {
+
+        data = requests.filter(request =>
+
+            request.status === "Pending Payment" ||
+
+            request.status === "Completed" ||
+
+            request.status === "Declined"
+
+        );
+
+    }
+
+    renderFinanceTable(data);
+
+}
         }
 
     );
@@ -662,6 +735,14 @@ document.addEventListener(
 
         }
 
+        // ✅ ADD THIS (DOCUMENT VIEW)
+        const documentBtn = e.target.closest(".finance-view-document");
+
+        if (documentBtn) {
+            window.open(documentBtn.dataset.url, "_blank");
+            return;
+        }
+
     }
 
 );
@@ -784,9 +865,46 @@ async function openFinanceDetails(id) {
 
     const request = await getRequest(id);
 
+    if (!request) {
+        showToast("Request not found");
+        return;
+    }
+
+    const documentsHTML = request.documents?.length
+        ? `
+            <hr style="margin:20px 0;">
+
+            <h4>Supporting Documents</h4>
+
+            ${request.documents.map((doc, index) => `
+                <button
+                    class="primary-btn finance-view-document"
+                    data-url="${doc.url}"
+                    style="margin:6px;">
+
+                    <i class="fa-solid fa-file"></i>
+
+                    Document ${index + 1}
+
+                </button>
+            `).join("")}
+        `
+        : request.documentUrl
+            ? `
+                <button
+                    class="primary-btn finance-view-document"
+                    data-url="${request.documentUrl}">
+
+                    <i class="fa-solid fa-file"></i>
+
+                    Document
+
+                </button>
+            `
+            : "<p><i>No document uploaded.</i></p>";
+
     openModal(
         "Payment Request Details",
-
         `
         <p><strong>Requested By:</strong> ${request.requestedBy}</p>
 
@@ -798,48 +916,8 @@ async function openFinanceDetails(id) {
 
         <p><strong>Description:</strong> ${request.description}</p>
 
-        ${
-            request.documentUrl
-                ? `
-                <br>
-
-                <button
-                    id="financeViewDocument"
-                    class="primary-btn">
-
-                    <i class="fa-solid fa-file"></i>
-
-                    View Document
-
-                </button>
-                `
-                : "<p><i>No document uploaded.</i></p>"
-        }
-
+        ${documentsHTML}
         `,
         null
     );
-
-    // Wait until modal HTML is rendered
-    setTimeout(() => {
-
-        const btn = document.getElementById(
-            "financeViewDocument"
-        );
-
-        if (btn) {
-
-            btn.onclick = () => {
-
-                window.open(
-                    request.documentUrl,
-                    "_blank"
-                );
-
-            };
-
-        }
-
-    }, 0);
-
 }

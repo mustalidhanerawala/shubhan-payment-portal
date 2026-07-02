@@ -46,10 +46,18 @@ const request = {
 
     description: data.description,
 
-    documentUrl: data.documentUrl || "",
+    documents: data.documents || [],
 
-    publicId: data.publicId || "",
+// Backward compatibility
+documentUrl:
+    data.documents?.length
+        ? data.documents[0].url
+        : "",
 
+publicId:
+    data.documents?.length
+        ? data.documents[0].publicId
+        : "",
     // ✅ Finance Head skips Finance Approval
     status: isFinanceHead
         ? "Pending Payment"

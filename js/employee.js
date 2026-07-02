@@ -4,12 +4,19 @@
 // PART 1
 // Dashboard UI + Navigation + Request Form
 // =============================================
+import {
+    uploadDocument,
+    validateDocument,
+    getFileIcon
+} from "./cloudinary.js";
+
 
 import {
     contentArea,
     setPageTitle,
     getCurrentUser,
-    showToast
+    showToast,
+    updateStats
 } from "./app.js";
 
 import {
@@ -19,12 +26,10 @@ import {
     formatDate
 } from "./request.js";
 
-import {
-    uploadDocument,
-    validateDocument
-} from "./cloudinary.js";
+
 
 let currentEmployee = null;
+let selectedFiles = [];
 let employeeRequests = [];
 
 let unsubscribeEmployee = null;
@@ -61,10 +66,6 @@ function renderDashboard() {
                         ${currentEmployee.name}
                     </h2>
 
-                    <p>
-                        Create payment requests and monitor their status.
-                    </p>
-
                 </div>
 
                 <button
@@ -79,19 +80,6 @@ function renderDashboard() {
 
             </div>
 
-            <div id="employeeRequestContainer">
-
-                <div class="empty-state">
-
-                    <i class="fa-solid fa-file-circle-xmark"></i>
-
-                    <h3>No Requests Yet</h3>
-
-                    <p>Create your first payment request.</p>
-
-                </div>
-
-            </div>
 
         </div>
 
@@ -100,16 +88,39 @@ function renderDashboard() {
     document
         .getElementById("newRequestBtn")
         .onclick = openNewRequestForm;
-    loadEmployeeRequests();
 }
 
+
+export function loadEmployeeHistory() {
+
+    currentEmployee = getCurrentUser();
+
+    setPageTitle("My Requests");
+
+    contentArea.innerHTML = `
+
+        <div id="employeeRequestContainer">
+
+            <div class="empty-state">
+
+                Loading...
+
+            </div>
+
+        </div>
+
+    `;
+
+    loadEmployeeRequests();
+
+}
 // =============================================
 // REQUEST FORM
 // =============================================
 
 export function openNewRequestForm() {
-      currentEmployee = getCurrentUser();
-
+    currentEmployee = getCurrentUser();
+    selectedFiles = [];
     console.log(currentEmployee); // temporary
 
     setPageTitle("New Request");
@@ -217,9 +228,11 @@ export function openNewRequestForm() {
             </label>
 
             <input
-                type="file"
-                id="document"
-                accept=".pdf,.png,.jpg,.jpeg,.xlsx,.xls">
+    type="file"
+    id="document"
+    multiple
+    accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx">
+    <div id="selectedFilesList" class="selected-files-list"></div>
 
             <div
                 id="uploadProgress"
@@ -262,27 +275,30 @@ export function openNewRequestForm() {
 
     `;
 
-   document
-    .getElementById("cancelRequest")
-    .onclick = () => {
+    document
+        .getElementById("cancelRequest")
+        .onclick = () => {
 
-        if (currentEmployee.role === "finance") {
+            if (currentEmployee.role === "finance") {
 
-            import("./finance.js").then(module => {
-                module.loadFinanceDashboard();
-            });
+                import("./finance.js").then(module => {
+                    module.loadFinanceDashboard();
+                });
 
-        } else {
+            } else {
 
-            renderDashboard();
+                renderDashboard();
 
-        }
+            }
 
-    };
+        };
 
     document
         .getElementById("requestForm")
         .addEventListener("submit", submitRequest);
+    document
+        .getElementById("document")
+        .addEventListener("change", handleFileSelection);
 
 }
 
@@ -305,8 +321,7 @@ async function submitRequest(e) {
     const description =
         document.getElementById("description").value.trim();
 
-    const file =
-        document.getElementById("document").files[0];
+    const files = selectedFiles;
 
     if (
         expenseType === "" ||
@@ -321,46 +336,63 @@ async function submitRequest(e) {
 
     }
 
-    const validation = validateDocument(file);
+    for (const file of files) {
 
-    if (!validation.valid) {
+        const validation = validateDocument(file);
 
-        showToast(validation.message);
+        if (!validation.valid) {
 
-        return;
+            showToast(validation.message);
+
+            return;
+
+        }
 
     }
 
-    let documentUrl = "";
 
-    let publicId = "";
+
+    const uploadedDocuments = [];
 
     try {
 
-        if (file) {
+        if (files.length > 0) {
 
             document
                 .getElementById("uploadProgress")
                 .style.display = "block";
 
-            const upload = await uploadDocument(
 
-                file,
 
-                function (percent) {
 
-                    document
-                        .getElementById("progressBar")
-                        .value = percent;
 
-                }
+            let completedUploads = 0;
+            const progressBar = document.getElementById("progressBar");
 
-            );
+            for (let i = 0; i < files.length; i++) {
 
-            documentUrl = upload.url;
+                const upload = await uploadDocument(files[i]);
 
-            publicId = upload.publicId;
+                uploadedDocuments.push({
 
+                    url: upload.url || "",
+
+                    publicId: upload.publicId || "",
+
+                    originalName: upload.originalName || files[i].name,
+
+                    bytes: upload.bytes ?? files[i].size,
+
+                    format: upload.format || "",
+
+                    resourceType: upload.resourceType || "raw"
+
+                });
+
+                progressBar.value = Math.round(
+                    ((i + 1) / files.length) * 100
+                );
+            }
         }
 
         const result = await createRequest({
@@ -377,16 +409,20 @@ async function submitRequest(e) {
 
             description,
 
-            documentUrl,
-
-            publicId
+            documents: uploadedDocuments
 
         });
 
         if (result.success) {
 
+            selectedFiles = [];
+
+            renderSelectedFiles();
+
             showToast("Request submitted successfully.");
-            loadEmployeeRequests()
+
+            loadEmployeeRequests();
+
             renderDashboard();
 
         }
@@ -408,6 +444,7 @@ async function submitRequest(e) {
     }
 
 }
+
 
 /*
     Part 2 will:
@@ -510,79 +547,18 @@ function renderEmployeeRequests() {
 
     const stats = getCounts(
 
+
         employeeRequests
 
     );
-
+    updateStats(
+        stats.pending,
+        stats.approved,
+        stats.completed,
+        stats.totalAmount
+    );
     let html = `
 
-    <div class="stats">
-
-        <div class="stat-card">
-
-            <h2>
-
-                ${stats.pending}
-
-            </h2>
-
-            <p>
-
-                Pending Finance
-
-            </p>
-
-        </div>
-
-        <div class="stat-card">
-
-            <h2>
-
-                ${stats.approved}
-
-            </h2>
-
-            <p>
-
-                Pending Payment
-
-            </p>
-
-        </div>
-
-        <div class="stat-card">
-
-            <h2>
-
-                ${stats.completed}
-
-            </h2>
-
-            <p>
-
-                Completed
-
-            </p>
-
-        </div>
-
-        <div class="stat-card">
-
-            <h2>
-
-                ₹${Number(stats.totalAmount).toLocaleString("en-IN")}
-
-            </h2>
-
-            <p>
-
-                Total Amount
-
-            </p>
-
-        </div>
-
-    </div>
 
     <div class="request-list">
 
@@ -646,47 +622,59 @@ function renderEmployeeRequests() {
 
             <div class="request-footer">
 
-                ${request.documentUrl ?
+${request.documents?.length
 
-                `
+? request.documents.map((doc, index) => `
 
-                <button
+<button
+class="primary-btn view-document"
+data-url="${doc.url}">
 
-                    class="primary-btn view-document"
+<i class="fa-solid fa-file"></i>
 
-                    data-url="${request.documentUrl}">
+Document ${index + 1}
 
-                    <i class="fa-solid fa-file"></i>
+</button>
 
-                    View Document
+`).join("")
 
-                </button>
+                : request.documentUrl
 
-                `
+                    ? `
 
-                :
+<button
+class="primary-btn view-document"
+data-url="${request.documentUrl}">
 
-                ""
+<i class="fa-solid fa-file"></i>
+
+View Document
+
+</button>
+
+`
+
+                    : ""
 
             }
 
-            </div>
+</div>
 
-        </div>
+</div>
 
-        `;
+`;
 
     });
 
     html += "</div>";
 
     container.innerHTML = html;
-    // ✅ scroll to requests section
-    container.scrollIntoView({ behavior: "smooth", block: "start" });
+    container.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
 
 }
-
-
 
 // =============================================
 // STATUS BADGE
@@ -774,8 +762,92 @@ document.addEventListener(
 
         const url = button.dataset.url;
 
-      window.open(url, "_blank");
+        window.open(url, "_blank");
 
     }
 
 );
+
+function handleFileSelection(e) {
+
+    const newFiles = Array.from(e.target.files);
+
+    newFiles.forEach(file => {
+
+        const alreadyExists = selectedFiles.some(existing =>
+
+            existing.name === file.name &&
+            existing.size === file.size &&
+            existing.lastModified === file.lastModified
+
+        );
+
+        if (!alreadyExists) {
+            selectedFiles.push(file);
+        }
+
+    });
+
+    // Allows selecting the same file again later if removed
+    e.target.value = "";
+
+    renderSelectedFiles();
+
+}
+
+function renderSelectedFiles() {
+
+    const container = document.getElementById("selectedFilesList");
+
+    if (!container) return;
+
+    if (selectedFiles.length === 0) {
+
+        container.innerHTML = "";
+
+        return;
+
+    }
+
+    container.innerHTML = selectedFiles.map((file, index) => `
+
+        <div class="selected-file">
+
+            <span>
+
+             <i class="${getFileIcon(file.name)}"></i>
+
+               Document ${index + 1}
+
+                (${Math.round(file.size / 1024)} KB)
+
+            </span>
+
+            <button
+                type="button"
+                class="remove-file"
+                data-index="${index}">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+    `).join("");
+
+}
+document.addEventListener("click", function (e) {
+
+    const button = e.target.closest(".remove-file");
+
+    if (!button) return;
+
+    const index = Number(button.dataset.index);
+
+    selectedFiles.splice(index, 1);
+
+    renderSelectedFiles();
+
+});
+

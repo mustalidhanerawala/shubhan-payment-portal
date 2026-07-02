@@ -160,19 +160,23 @@ export function validateDocument(file) {
 
     const allowedTypes = [
 
-        "application/pdf",
+    "application/pdf",
 
-        "image/jpeg",
+    "image/jpeg",
 
-        "image/png",
+    "image/png",
 
-        "image/jpg",
+    "image/jpg",
 
-        "application/vnd.ms-excel",
+    "application/msword",
 
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 
-    ];
+    "application/vnd.ms-excel",
+
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+];
 
     if (
         !allowedTypes.includes(file.type)
@@ -287,6 +291,10 @@ export function getFileIcon(fileName) {
 
             return "fa-solid fa-file-excel";
 
+        case "doc":
+
+        case "docx":
+            return "fa-solid fa-file-word";
         default:
 
             return "fa-solid fa-file";

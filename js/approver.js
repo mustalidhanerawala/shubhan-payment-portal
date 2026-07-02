@@ -29,7 +29,7 @@ let pendingPayments = [];
 
 let unsubscribeApprover = null;
 
-
+let approverView = "dashboard";
 
 // ==============================================
 // LOAD DASHBOARD
@@ -37,20 +37,70 @@ let unsubscribeApprover = null;
 
 export function loadApproverDashboard() {
 
+    approverView = "dashboard";
+
     approverUser = getCurrentUser();
 
-    setPageTitle("Approver Dashboard");
+    setPageTitle("Dashboard");
 
-    renderApproverDashboard();
+    contentArea.innerHTML = `
+
+        <div class="finance-dashboard">
+
+            <div class="dashboard-header">
+
+                <div>
+
+                    <h2>
+
+                        Welcome, ${approverUser.name}
+
+                    </h2>
+
+                    <p>
+
+                        Review finance-approved requests and complete payments.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+   loadRealtimePendingPayments(false);
 
 }
-
 
 
 // ==============================================
 // DASHBOARD
 // ==============================================
+export function loadPendingPayments() {
 
+    approverView = "pending";
+
+    approverUser = getCurrentUser();
+
+    setPageTitle("Pending Payments");
+
+    renderApproverDashboard();
+
+}
+export function loadCompletedPaymentsPage() {
+
+    approverView = "completed";
+
+    approverUser = getCurrentUser();
+
+    setPageTitle("Completed");
+
+    renderApproverDashboard();
+
+}
 function renderApproverDashboard() {
 
     contentArea.innerHTML = `
@@ -104,53 +154,61 @@ function renderApproverDashboard() {
             "input",
             filterPayments
         );
+    if (approverView === "pending") {
 
-    loadPendingPayments();
-    loadCompletedPayments();
+        loadRealtimePendingPayments(true);
+
+    }
+
+    else if (approverView === "completed") {
+
+        loadCompletedPayments();
+
+    }
     document
-    .getElementById("paymentContainer")
-    .addEventListener("click", async (e) => {
+        .getElementById("paymentContainer")
+        .addEventListener("click", async (e) => {
 
-        // -------------------------
-        // COMPLETE PAYMENT
-        // -------------------------
-        const completeBtn = e.target.closest(".complete-btn");
+            // -------------------------
+            // COMPLETE PAYMENT
+            // -------------------------
+            const completeBtn = e.target.closest(".complete-btn");
 
-        if (completeBtn) {
+            if (completeBtn) {
 
-            const id = completeBtn.dataset.id;
+                const id = completeBtn.dataset.id;
 
-            completeBtn.disabled = true;
-            completeBtn.innerText = "Processing...";
+                completeBtn.disabled = true;
+                completeBtn.innerText = "Processing...";
 
-            const approver = approverUser.name;
+                const approver = approverUser.name;
 
-            const success = await completePayment(id, approver);
+                const success = await completePayment(id, approver);
 
-            if (success) {
-                alert("Payment completed");
-            } else {
-                alert("Failed to complete payment");
-                completeBtn.disabled = false;
-                completeBtn.innerText = "Complete";
+                if (success) {
+                  
+                } else {
+
+                    completeBtn.disabled = false;
+                    completeBtn.innerText = "Complete";
+                }
+
+                return;
             }
 
-            return;
-        }
+            // -------------------------
+            // VIEW DOCUMENT
+            // -------------------------
+            const documentBtn = e.target.closest(".view-payment-document");
 
-        // -------------------------
-        // VIEW DOCUMENT
-        // -------------------------
-        const documentBtn = e.target.closest(".view-payment-document");
+            if (documentBtn) {
 
-        if (documentBtn) {
+                openDocument(documentBtn.dataset.url);
 
-            openDocument(documentBtn.dataset.url);
+                return;
+            }
 
-            return;
-        }
-
-    });
+        });
 }
 
 
@@ -158,7 +216,7 @@ function renderApproverDashboard() {
 // REALTIME
 // ==============================================
 
-function loadPendingPayments() {
+function loadRealtimePendingPayments(renderTable = true) {
 
     if (unsubscribeApprover) {
 
@@ -172,13 +230,13 @@ function loadPendingPayments() {
 
             pendingPayments = requests;
 
-            renderPayments(
-
-                pendingPayments
-
-            );
-
             updateCards();
+
+            if (renderTable) {
+
+                renderPayments(pendingPayments);
+
+            }
 
         }
 
@@ -326,41 +384,33 @@ function renderPayments(data) {
 
                 </td>
 
-                <td>
+               <td>
 
-                    <button
+    <button
+        class="success-btn complete-btn"
+        data-id="${request.id}">
 
-                        class="success-btn complete-btn"
+        Complete
 
-                        data-id="${request.id}">
+    </button>
 
-                        Complete
+    ${request.documents?.length ? `
+        <div class="request-footer">
 
-                    </button>
+        ${request.documents.map((doc, index) => `
+            <button
+                class="primary-btn view-payment-document"
+                data-url="${doc.url}">
 
-                    ${request.documentUrl ?
+                Document ${index + 1}
 
-                    `
+            </button>
+        `).join("")}
 
-                    <button
+        </div>
+    ` : ""}
 
-                        class="primary-btn view-payment-document"
-
-                        data-url="${request.documentUrl}">
-
-                        Document
-
-                    </button>
-
-                    `
-
-                    :
-
-                    ""
-
-                }
-
-                </td>
+</td>
 
             </tr>
 
@@ -437,7 +487,8 @@ function filterPayments() {
 let completedPayments = [];
 function renderCompletedPayments(data) {
 
-    const container = document.getElementById("completedContainer");
+    const container =
+        document.getElementById("paymentContainer");
 
     if (!container) return;
 
@@ -461,7 +512,7 @@ function renderCompletedPayments(data) {
     html += "</tbody></table>";
 
     container.innerHTML = html;
-     // ✅ FIX: auto scroll to completed section
+    // ✅ FIX: auto scroll to completed section
     container.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
