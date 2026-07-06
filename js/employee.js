@@ -44,6 +44,8 @@ export function loadEmployeeDashboard() {
     setPageTitle("Employee Dashboard");
 
     renderDashboard();
+     
+    loadEmployeeRequests();
 
 }
 
@@ -509,54 +511,18 @@ function loadEmployeeRequests() {
 
 function renderEmployeeRequests() {
 
-    const container = document.getElementById(
+    const stats = getCounts(employeeRequests);
 
-        "employeeRequestContainer"
+updateStats(
+    stats.pending,
+    stats.approved,
+    stats.completed,
+    stats.totalAmount
+);
 
-    );
+const container = document.getElementById("employeeRequestContainer");
 
-    if (!container) return;
-
-    if (employeeRequests.length === 0) {
-
-        container.innerHTML = `
-
-        <div class="empty-state">
-
-            <i class="fa-solid fa-folder-open"></i>
-
-            <h3>
-
-                No Requests Yet
-
-            </h3>
-
-            <p>
-
-                Create your first payment request.
-
-            </p>
-
-        </div>
-
-        `;
-
-        return;
-
-    }
-
-    const stats = getCounts(
-
-
-        employeeRequests
-
-    );
-    updateStats(
-        stats.pending,
-        stats.approved,
-        stats.completed,
-        stats.totalAmount
-    );
+if (!container) return;
     let html = `
 
 
@@ -617,6 +583,19 @@ function renderEmployeeRequests() {
                     ${request.description}
 
                 </p>
+
+                ${request.status === "Completed"
+    ? `
+<p>
+
+    <strong>Payment Note:</strong>
+
+    ${request.completionNote || "-"}
+
+</p>
+`
+    : ""
+}
 
             </div>
 

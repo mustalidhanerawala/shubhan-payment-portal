@@ -5,13 +5,13 @@
 // ==============================================
 import { openDocument } from "./cloudinary.js";
 import { completePayment } from "./request.js";
-import { listenCompletedPayments } from "./request.js";
+
 import {
 
     contentArea,
     setPageTitle,
     getCurrentUser,
-    updateStats
+    updateStats,
 
 } from "./app.js";
 
@@ -23,6 +23,16 @@ import {
 
 } from "./request.js";
 
+import {
+    configureAuditTrail,
+    loadCompletedPayments,
+    filterAuditTrail,
+    openFilterModal,
+    openExportModal,
+    clearAuditFilters,
+    handleAuditTrailClick
+} from "./auditTrail.js";
+
 let approverUser = null;
 
 let pendingPayments = [];
@@ -30,6 +40,8 @@ let pendingPayments = [];
 let unsubscribeApprover = null;
 
 let approverView = "dashboard";
+
+
 
 // ==============================================
 // LOAD DASHBOARD
@@ -71,7 +83,7 @@ export function loadApproverDashboard() {
 
     `;
 
-   loadRealtimePendingPayments(false);
+    loadRealtimePendingPayments(false);
 
 }
 
@@ -96,7 +108,7 @@ export function loadCompletedPaymentsPage() {
 
     approverUser = getCurrentUser();
 
-    setPageTitle("Completed");
+    setPageTitle("Audit Trail");
 
     renderApproverDashboard();
 
@@ -126,17 +138,37 @@ function renderApproverDashboard() {
 
             </div>
 
-            <div>
+         ${approverView === "completed"
+            ? `
+        <div class="audit-filters">
 
-                <input
+            <input
+                id="paymentSearch"
+                type="text"
+                placeholder="Search">
 
-                    id="paymentSearch"
 
-                    type="text"
+            <button id="openFilterModal">
+    Apply Filters
+</button>
 
-                    placeholder="Search...">
+<button id="openExportModal">
+    Export to Excel
+</button>
 
-            </div>
+<button id="clearFilter">
+    Clear
+</button>
+
+        </div>
+    `
+            : `
+        <input
+            id="paymentSearch"
+            type="text"
+            placeholder="Search...">
+    `
+        }
 
         </div>
 
@@ -148,21 +180,54 @@ function renderApproverDashboard() {
 
     `;
 
-    document
-        .getElementById("paymentSearch")
-        .addEventListener(
+    const searchBox = document.getElementById("paymentSearch");
+
+    if (searchBox) {
+
+        searchBox.addEventListener(
+
             "input",
-            filterPayments
+
+            approverView === "completed"
+
+                ? filterAuditTrail
+
+                : filterPayments
+
         );
+
+    }
     if (approverView === "pending") {
 
         loadRealtimePendingPayments(true);
 
     }
-
     else if (approverView === "completed") {
 
+        configureAuditTrail({
+
+            containerId: "paymentContainer",
+
+            searchBoxId: "paymentSearch"
+
+        });
+
         loadCompletedPayments();
+
+    }
+
+    if (approverView === "completed") {
+        document
+            .getElementById("openFilterModal")
+            .addEventListener("click", openFilterModal);
+        document
+            .getElementById("clearFilter")
+            .addEventListener("click", clearAuditFilters);
+
+        document
+            .getElementById("openExportModal")
+            .addEventListener("click", openExportModal);
+
 
     }
     document
@@ -181,12 +246,20 @@ function renderApproverDashboard() {
                 completeBtn.disabled = true;
                 completeBtn.innerText = "Processing...";
 
+                const note = document.querySelector(
+                    `.completion-note[data-id="${id}"]`
+                ).value.trim();
+
                 const approver = approverUser.name;
 
-                const success = await completePayment(id, approver);
+                const success = await completePayment(
+                    id,
+                    approver,
+                    note
+                );
 
                 if (success) {
-                  
+
                 } else {
 
                     completeBtn.disabled = false;
@@ -199,17 +272,18 @@ function renderApproverDashboard() {
             // -------------------------
             // VIEW DOCUMENT
             // -------------------------
-            const documentBtn = e.target.closest(".view-payment-document");
-
-            if (documentBtn) {
-
-                openDocument(documentBtn.dataset.url);
-
+            if (handleAuditTrailClick(e)) {
                 return;
             }
 
         });
 }
+
+
+
+
+
+
 
 
 // ==============================================
@@ -385,7 +459,11 @@ function renderPayments(data) {
                 </td>
 
                <td>
-
+<textarea
+    class="completion-note"
+    data-id="${request.id}"
+    placeholder="Add completion note (optional)">
+</textarea>
     <button
         class="success-btn complete-btn"
         data-id="${request.id}">
@@ -484,48 +562,5 @@ function filterPayments() {
 
 }
 
-let completedPayments = [];
-function renderCompletedPayments(data) {
 
-    const container =
-        document.getElementById("paymentContainer");
 
-    if (!container) return;
-
-    if (data.length === 0) {
-        container.innerHTML = "<p>No completed payments</p>";
-        return;
-    }
-
-    let html = "<h3>Completed Payments</h3><table><tbody>";
-
-    data.forEach(req => {
-        html += `
-        <tr>
-            <td>${req.requestedBy}</td>
-            <td>${req.payTo}</td>
-            <td>₹${req.amount}</td>
-            <td>Completed</td>
-        </tr>`;
-    });
-
-    html += "</tbody></table>";
-
-    container.innerHTML = html;
-    // ✅ FIX: auto scroll to completed section
-    container.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function loadCompletedPayments() {
-
-    listenCompletedPayments((requests) => {
-
-        console.log("COMPLETED:", requests); // DEBUG (optional but important)
-
-        completedPayments = requests;
-
-        renderCompletedPayments(requests);
-
-    });
-
-}

@@ -29,55 +29,55 @@ export async function createRequest(data) {
 
     try {
 
-       const isFinanceHead =
-    data.requestedByUsername === "mustafa";
+        const isFinanceHead =
+            data.requestedByUsername === "mustafa";
 
-const request = {
+        const request = {
 
-    requestedBy: data.requestedBy,
+            requestedBy: data.requestedBy,
 
-    requestedByUsername: data.requestedByUsername,
+            requestedByUsername: data.requestedByUsername,
 
-    expenseType: data.expenseType,
+            expenseType: data.expenseType,
 
-    payTo: data.payTo,
+            payTo: data.payTo,
 
-    amount: Number(data.amount),
+            amount: Number(data.amount),
 
-    description: data.description,
+            description: data.description,
 
-    documents: data.documents || [],
+            documents: data.documents || [],
 
-// Backward compatibility
-documentUrl:
-    data.documents?.length
-        ? data.documents[0].url
-        : "",
+            // Backward compatibility
+            documentUrl:
+                data.documents?.length
+                    ? data.documents[0].url
+                    : "",
 
-publicId:
-    data.documents?.length
-        ? data.documents[0].publicId
-        : "",
-    // ✅ Finance Head skips Finance Approval
-    status: isFinanceHead
-        ? "Pending Payment"
-        : "Pending Finance",
+            publicId:
+                data.documents?.length
+                    ? data.documents[0].publicId
+                    : "",
+            // ✅ Finance Head skips Finance Approval
+            status: isFinanceHead
+                ? "Pending Payment"
+                : "Pending Finance",
 
-    financeApprovedBy: isFinanceHead
-        ? data.requestedBy
-        : "",
+            financeApprovedBy: isFinanceHead
+                ? data.requestedBy
+                : "",
 
-    completedBy: "",
+            completedBy: "",
 
-    financeApprovedAt: isFinanceHead
-        ? serverTimestamp()
-        : null,
+            financeApprovedAt: isFinanceHead
+                ? serverTimestamp()
+                : null,
 
-    completedAt: null,
+            completedAt: null,
 
-    createdAt: serverTimestamp()
+            createdAt: serverTimestamp()
 
-};
+        };
 
         const docRef = await addDoc(requestCollection, request);
 
@@ -903,7 +903,8 @@ export async function completePayment(
 
     requestId,
 
-    completedBy
+    completedBy,
+    completionNote
 
 ) {
 
@@ -919,21 +920,17 @@ export async function completePayment(
 
         );
 
-        await updateDoc(
+        await updateDoc(requestRef, {
 
-            requestRef,
+            status: "Completed",
 
-            {
+            completedBy,
 
-                status: "Completed",
+            completedAt: serverTimestamp(),
 
-                completedBy: completedBy,
+            completionNote
 
-                completedAt: serverTimestamp()
-
-            }
-
-        );
+        });
 
         return true;
 

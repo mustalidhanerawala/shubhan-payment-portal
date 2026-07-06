@@ -11,7 +11,8 @@ import {
 import {
     loadFinanceDashboard,
     loadFinancePending,
-    loadFinanceCompleted
+    loadFinanceCompleted,
+    loadFinanceAuditTrail
 } from "./finance.js";
 
 import {
@@ -107,18 +108,27 @@ export function showToast(message) {
 // MODAL
 // =====================================
 
-export function openModal(title, text, callback) {
+export function openModal(
+    title,
+    text,
+    callback,
+    confirmText = "Confirm",
+    cancelText = "Cancel"
+) {
 
     modalTitle.innerHTML = title;
 
     modalText.innerHTML = text;
+
+    confirmModal.innerText = confirmText;
+
+    cancelModal.innerText = cancelText;
 
     modalOverlay.style.display = "flex";
 
     modalCallback = callback;
 
 }
-
 cancelModal.onclick = () => {
 
     modalOverlay.style.display = "none";
@@ -247,6 +257,8 @@ function buildSidebar(role) {
 
 <li><a href="#" data-page="completed"><i class="fa-solid fa-circle-check"></i> Completed</a></li>
 
+<li><a href="#" data-page="audit"><i class="fa-solid fa-file-lines"></i> Audit Trail</a></li>
+
 <li><a href="#" data-page="newRequest"><i class="fa-solid fa-plus"></i> New Request</a></li>
 
 `;
@@ -261,7 +273,7 @@ function buildSidebar(role) {
 
 <li><a href="#" data-page="payments"><i class="fa-solid fa-money-check-dollar"></i> Pending Payments</a></li>
 
-<li><a href="#" data-page="completed"><i class="fa-solid fa-circle-check"></i> Completed</a></li>
+<li><a href="#" data-page="completed"><i class="fa-solid fa-circle-check"></i>Audit Trail</a></li>
 
 `;
 
@@ -434,6 +446,13 @@ document.addEventListener(
                     case "completed":
 
                         loadFinanceCompleted();
+
+                        break;
+
+
+                    case "audit":
+
+                        loadFinanceAuditTrail();
 
                         break;
 

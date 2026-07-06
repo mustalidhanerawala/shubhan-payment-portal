@@ -4,6 +4,19 @@
 // PART 1
 // Mustafa Dashboard UI
 // ==============================================
+
+import {
+    configureAuditTrail,
+    loadCompletedPayments,
+    filterAuditTrail,
+    openFilterModal,
+    openExportModal,
+    clearAuditFilters,
+    handleAuditTrailClick
+} from "./auditTrail.js";
+
+
+
 import { openNewRequestForm } from "./employee.js";
 import {
 
@@ -95,6 +108,20 @@ export function loadFinanceCompleted() {
 
 }
 
+export function loadFinanceAuditTrail() {
+
+    financeView = "audit";
+
+    financeUser = getCurrentUser();
+
+    setPageTitle("Audit Trail");
+
+    buildFinanceDashboard();
+
+  
+
+}
+
 
 // ==============================================
 // DASHBOARD HTML
@@ -119,54 +146,84 @@ function buildFinanceDashboard() {
 
                 <p>
 
-                    Review payment requests submitted by employees.
+                    ${financeView === "audit"
+
+            ? "View completed payment history."
+
+            : "Review payment requests submitted by employees."
+        }
 
                 </p>
 
             </div>
 
-            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+           ${financeView === "audit"
 
-                <input
-                    id="financeSearch"
-                    type="text"
-                    placeholder="Search Request...">
+            ? `
 
-                <select id="financeFilter">
+<div class="audit-filters">
 
-                    <option value="All">
+    <input
+        id="financeSearch"
+        type="text"
+        placeholder="Search">
 
-                        All Status
+    <button id="openFilterModal">
 
-                    </option>
+        Apply Filters
 
-                    <option value="Pending Finance">
+    </button>
 
-                        Pending Finance
+    <button id="openExportModal">
 
-                    </option>
+        Export to Excel
 
-                    <option value="Pending Payment">
+    </button>
 
-                        Pending Payment
+    <button id="clearFilter">
 
-                    </option>
+        Clear
 
-                    <option value="Completed">
+    </button>
 
-                        Completed
+</div>
 
-                    </option>
+`
 
-                    <option value="Declined">
+            : `
 
-                        Declined
+<div style="display:flex;gap:12px;flex-wrap:wrap;">
 
-                    </option>
+    <input
+        id="financeSearch"
+        type="text"
+        placeholder="Search Request...">
 
-                </select>
+    <select id="financeFilter">
 
-            </div>
+        <option value="All">All Status</option>
+
+        <option value="Pending Finance">
+            Pending Finance
+        </option>
+
+        <option value="Pending Payment">
+            Pending Payment
+        </option>
+
+        <option value="Completed">
+            Completed
+        </option>
+
+        <option value="Declined">
+            Declined
+        </option>
+
+    </select>
+
+</div>
+
+`}
 
         </div>
 
@@ -178,13 +235,69 @@ function buildFinanceDashboard() {
 
     `;
 
-    document
-        .getElementById("financeSearch")
-        .addEventListener("input", filterFinanceTable);
+    const searchBox =
+        document.getElementById("financeSearch");
 
-    document
-        .getElementById("financeFilter")
-        .addEventListener("change", filterFinanceTable);
+    searchBox.addEventListener(
+
+        "input",
+
+        financeView === "audit"
+
+            ? filterAuditTrail
+
+            : filterFinanceTable
+
+    );
+    if (financeView === "audit") {
+
+        document
+            .getElementById("openFilterModal")
+            .addEventListener(
+                "click",
+                openFilterModal
+            );
+
+        document
+            .getElementById("openExportModal")
+            .addEventListener(
+                "click",
+                openExportModal
+            );
+
+        document
+            .getElementById("clearFilter")
+            .addEventListener(
+                "click",
+                clearAuditFilters
+            );
+
+    }
+    if (financeView === "audit") {
+
+        configureAuditTrail({
+
+            containerId: "financeTableContainer",
+
+            searchBoxId: "financeSearch"
+
+        });
+
+        loadCompletedPayments();
+
+        return;
+
+    }
+    if (financeView !== "audit") {
+
+        document
+            .getElementById("financeFilter")
+            .addEventListener(
+                "change",
+                filterFinanceTable
+            );
+
+    }
 
 }
 
@@ -210,35 +323,37 @@ function loadRealtimeRequests(renderTable = true) {
 
             updateDashboardCards();
 
-           if (renderTable) {
+            if (renderTable) {
 
-    let data = requests;
 
-    if (financeView === "pending") {
 
-        data = requests.filter(request =>
-            request.status === "Pending Finance"
-        );
+                let data = requests;
 
-    }
+                if (financeView === "pending") {
 
-    else if (financeView === "completed") {
+                    data = requests.filter(
+                        request => request.status === "Pending Finance"
+                    );
 
-        data = requests.filter(request =>
+                }
 
-            request.status === "Pending Payment" ||
+                else if (financeView === "completed") {
 
-            request.status === "Completed" ||
+                    data = requests.filter(request =>
 
-            request.status === "Declined"
+                        request.status === "Pending Payment" ||
 
-        );
+                        request.status === "Completed" ||
 
-    }
+                        request.status === "Declined"
 
-    renderFinanceTable(data);
+                    );
 
-}
+                }
+
+                renderFinanceTable(data);
+
+            }
         }
 
     );
@@ -351,11 +466,14 @@ function renderFinanceTable(data) {
 
                 </th>
 
+      ${financeView === "pending" ? `
+<th>
+    Action
+</th>
+` : ""}
                 <th>
-
-                    Action
-
-                </th>
+    Completion Note
+</th>
 
             </tr>
 
@@ -409,11 +527,20 @@ function renderFinanceTable(data) {
 
                 </td>
 
-                <td>
+ ${financeView === "pending" ? `
+<td>
+    ${getActionButtons(request)}
+</td>
+` : ""}
 
-                    ${getActionButtons(request)}
+<td>
 
-                </td>
+    ${request.status === "Completed"
+                    ? (request.completionNote || "-")
+                    : "-"
+                }
+
+</td>
 
             </tr>
 
@@ -736,13 +863,9 @@ document.addEventListener(
         }
 
         // ✅ ADD THIS (DOCUMENT VIEW)
-        const documentBtn = e.target.closest(".finance-view-document");
-
-        if (documentBtn) {
-            window.open(documentBtn.dataset.url, "_blank");
+        if (handleAuditTrailClick(e)) {
             return;
         }
-
     }
 
 );
