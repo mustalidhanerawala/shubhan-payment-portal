@@ -160,29 +160,45 @@ export function openNewRequestForm() {
 
                         </option>
 
-                        <option>
+                       <option>Personnel</option>
 
-                            Vendor Payment
+<option>Insurance</option>
 
-                        </option>
+<option>Drawdown</option>
 
-                        <option>
+<option>Agewell Expenses</option>
 
-                            Personnel Payment
+<option>Stamp Duty</option>
 
-                        </option>
+<option>Petty Cash</option>
 
-                        <option>
+<option>Social Media Expense</option>
 
-                            Employee Expense Reimbursement
+<option>Advisor Fees</option>
 
-                        </option>
+<option>Society Charges</option>
 
-                        <option>
+<option>Donation</option>
 
-                            Other
+<option>Entertainment</option>
 
-                        </option>
+<option>Annual Maintenance Charges (AMC)</option>
+
+<option>Vendor Payment</option>
+
+<option>Event</option>
+
+<option>Goods and Services Tax (GST)</option>
+
+<option>Professional Tax</option>
+
+<option>Travelling</option>
+
+<option>Administration</option>
+
+<option>Office</option>
+
+<option>Others</option>
 
                     </select>
 
